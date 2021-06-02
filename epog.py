@@ -21,11 +21,29 @@ Check the README.md for complete documentation.
 import sys
 import cv2
 import gaze_tracking as gt
-
+import pyautogui as gui
+from collections import deque
+gui.FAILSAFE = False
 # setup_epog expects max two args, both optional,
 # sets up webcam, and calibration windows
 test_error_dir = '../GazeEvaluation/test_errors/'
 epog = gt.EPOG(test_error_dir, sys.argv)
+
+queueSize = 5
+
+X_COORDINATES = deque(list(map(int, list("0"*queueSize))))
+Y_COORDINATES = deque(list(map(int, list("0"*queueSize))))
+
+
+def add_coordinates_and_return(x, y):
+    global X_COORDINATES, Y_COORDINATES
+    X_COORDINATES.append(x)
+    Y_COORDINATES.append(y)
+
+    X_COORDINATES.popleft()
+    Y_COORDINATES.popleft()
+
+    return int(sum(X_COORDINATES)/len(X_COORDINATES)), int(sum(Y_COORDINATES)/len(Y_COORDINATES))
 
 
 while True:
@@ -34,6 +52,7 @@ while True:
     if frame is not None:
         # Analyze gaze direction and map to screen coordinates
         screen_x, screen_y = epog.analyze(frame)
+        screen_x,screen_y = gui.position()
 
         # Access gaze direction
         text = ""
@@ -47,8 +66,15 @@ while True:
         # Use gaze projected onto screen surface
         # Screen coords will be None for a few initial frames,
         # before calibration and tests have been completed
+        
         if screen_x is not None and screen_y is not None:
-            text = "Looking at point {}, {} on the screen".format(screen_x, screen_y)
+            text = "Looking at point {}, {} on the screen".format(
+                screen_x, screen_y)
+            print(text)
+            x, y = add_coordinates_and_return(screen_x, screen_y)
+            print(x, y)
+            gui.moveTo(x, y, duration=0.1)
+        
 
         # Press Esc to quit the video analysis loop
         if cv2.waitKey(1) == 27:
