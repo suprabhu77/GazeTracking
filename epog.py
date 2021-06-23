@@ -52,16 +52,20 @@ while True:
     if frame is not None:
         # Analyze gaze direction and map to screen coordinates
         screen_x, screen_y = epog.analyze(frame)
-        screen_x,screen_y = gui.position()
+        # screen_x,screen_y = gui.position()
 
         # Access gaze direction
         text = ""
+        
         if epog.gaze_tr.is_right():
             text = "Looking right"
         elif epog.gaze_tr.is_left():
             text = "Looking left"
         elif epog.gaze_tr.is_center():
             text = "Looking center"
+        elif epog.gaze_tr.is_blinking():
+            text = "clicking"
+            print(text)
 
         # Use gaze projected onto screen surface
         # Screen coords will be None for a few initial frames,
@@ -88,3 +92,4 @@ while True:
         # Note: The waitkey function only works if there is at least one HighGUI window created and
         # the window is active. If there are several HighGUI windows, any of them can be active.
         # (https://docs.opencv.org/2.4/modules/highgui/doc/user_interface.html)
+#add
